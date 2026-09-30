@@ -1,4 +1,4 @@
-import { createServer } from 'node:http';
+import { createApp } from './app.ts';
 
 const host = process.env.HOST ?? '127.0.0.1';
 const port = Number(process.env.PORT ?? '3000');
@@ -7,29 +7,7 @@ if (!Number.isInteger(port) || port < 1 || port > 65535) {
   throw new Error('PORT must be an integer between 1 and 65535');
 }
 
-const server = createServer((request, response) => {
-  response.setHeader('Content-Type', 'application/json; charset=utf-8');
-  response.setHeader('Cache-Control', 'no-store');
-  const path = request.url?.split('?')[0];
-
-  if (path !== '/health') {
-    response.writeHead(404);
-    response.end(JSON.stringify({ error: 'Not found' }));
-    return;
-  }
-
-  if (request.method !== 'GET' && request.method !== 'HEAD') {
-    response.writeHead(405, { Allow: 'GET, HEAD' });
-    response.end(JSON.stringify({ error: 'Method not allowed' }));
-    return;
-  }
-
-  response.writeHead(200);
-  response.end(request.method === 'HEAD' ? undefined : JSON.stringify({
-    status: 'ok',
-    service: 'earthquake-dashboard-backend',
-  }));
-});
+const server = createApp();
 
 server.on('error', (error) => {
   console.error('Server failed:', error.message);
