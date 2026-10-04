@@ -2,6 +2,7 @@ import { normalizeFeed } from './earthquakes.ts';
 import { fetchUsgsDay } from './usgs.ts';
 
 const CACHE_TTL_MS = 60_000;
+
 type Snapshot = ReturnType<typeof normalizeFeed> & { fetchedAt: string };
 
 export const createFeedCache = (

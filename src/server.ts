@@ -22,6 +22,7 @@ for (const signal of ['SIGINT', 'SIGTERM'] as const) {
   process.once(signal, () => {
     server.close((error) => {
       if (error) console.error(error.message);
+
       process.exitCode = error ? 1 : 0;
     });
     setTimeout(() => server.closeAllConnections(), 5000).unref();
