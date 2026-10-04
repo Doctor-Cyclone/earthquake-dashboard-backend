@@ -1,8 +1,10 @@
 import { createServer } from 'node:http';
 import { fetchUsgsDay } from './usgs.ts';
-import { normalizeFeed } from './earthquakes.ts';
+import { createFeedCache } from './cache.ts';
 
 export function createApp(loadFeed: () => Promise<unknown> = fetchUsgsDay) {
+  const getFeed = createFeedCache(loadFeed);
+
   return createServer(async (request, response) => {
     response.setHeader('Content-Type', 'application/json; charset=utf-8');
     response.setHeader('Cache-Control', 'no-store');
@@ -25,8 +27,8 @@ export function createApp(loadFeed: () => Promise<unknown> = fetchUsgsDay) {
       return;
     }
     try {
-      const result = normalizeFeed(await loadFeed());
-      send(200, { ...result, fetchedAt: new Date().toISOString() });
+      const result = await getFeed();
+      send(200, result);
     } catch {
       send(502, { error: 'Earthquake data is temporarily unavailable', code: 'UPSTREAM_UNAVAILABLE' });
     }
