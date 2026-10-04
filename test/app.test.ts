@@ -48,3 +48,36 @@ test('health, unknown paths and unsupported methods do not request USGS', async 
     assert.equal(calls, 0);
   });
 });
+
+test('HTTP filters share unfiltered cache and invalid queries never load USGS', async () => {
+  let calls = 0;
+  const load = async () => {
+    calls++;
+    return { type: 'FeatureCollection', metadata: { generated: 0 }, features: [
+      { type: 'Feature', id: 'a', properties: { type: 'earthquake', mag: 4.5, place: null, time: 0 }, geometry: { type: 'Point', coordinates: [0, 0, 100] } },
+      { type: 'Feature', id: 'b', properties: { type: 'earthquake', mag: 2, place: null, time: 0 }, geometry: { type: 'Point', coordinates: [0, 0, 1] } },
+    ] };
+  };
+
+  await withServer(load, async url => {
+    const invalid = await fetch(`${url}/api/earthquakes?minMagnitude=no`);
+    assert.equal(invalid.status, 400);
+    assert.equal((await invalid.json()).code, 'INVALID_QUERY');
+    assert.equal(calls, 0);
+
+    const filtered = await (await fetch(`${url}/api/earthquakes?minMagnitude=4.5&maxDepth=100`)).json();
+    assert.equal(filtered.count, 1);
+    assert.equal(filtered.earthquakes[0].id, 'a');
+    assert.equal(filtered.stale, false);
+
+    const all = await (await fetch(`${url}/api/earthquakes`)).json();
+    assert.equal(all.count, 2);
+    assert.equal(all.fetchedAt, filtered.fetchedAt);
+    assert.equal(calls, 1);
+
+    const head = await fetch(`${url}/api/earthquakes?minDepth=bad`, { method: 'HEAD' });
+    assert.equal(head.status, 400);
+    assert.equal(await head.text(), '');
+  });
+});
+
