@@ -119,3 +119,9 @@ npm run format:check
 Публичное развёртывание сервера в этот этап не входит; при размещении фронтенда и API на разных адресах потребуется настроить reverse proxy либо CORS под выбранный адрес.
 
 [Описание формата USGS](https://earthquake.usgs.gov/earthquakes/feed/v1.0/geojson.php)
+
+## Continuous integration
+
+GitHub Actions запускает проверки при каждом push и pull request. Ручной запуск доступен во вкладке Actions → CI → Run workflow. Используется Node.js 24 и установка зависимостей из lock-файла через npm ci.
+
+Проверки: форматирование, типы TypeScript и тесты. Отдельная сборка не нужна: сервер запускает TypeScript средствами Node.js.
