@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: earthquake-dashboard-backend
+    runtime: node
+    plan: free
+    buildCommand: npm ci && npm run check
+    startCommand: npm start
+    healthCheckPath: /health
+    envVars:
+      - key: HOST
+        value: 0.0.0.0
+      - key: NODE_VERSION
+        value: 24
